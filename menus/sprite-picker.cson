@@ -2,19 +2,19 @@
 'context-menu':
   'atom-text-editor': [
     {
-      'label': 'Toggle beginners-editor'
-      'command': 'beginners-editor:toggle'
+      'label': 'Toggle sprite-picker'
+      'command': 'sprite-picker:toggle'
     }
   ]
 'menu': [
   {
     'label': 'Packages'
     'submenu': [
-      'label': 'beginners-editor'
+      'label': 'sprite-picker'
       'submenu': [
         {
           'label': 'Toggle'
-          'command': 'beginners-editor:toggle'
+          'command': 'sprite-picker:toggle'
         }
       ]
     ]

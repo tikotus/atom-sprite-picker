@@ -1,13 +1,14 @@
 {
-  "name": "beginners-editor",
-  "main": "./lib/beginners-editor",
+  "name": "sprite-picker",
+  "main": "./lib/sprite-picker",
   "version": "0.0.0",
   "description": "A short description of your package",
   "keywords": [
   ],
   "activationCommands": {
+    "atom-workspace": "sprite-picker:toggle"
   },
-  "repository": "https://github.com/atom/beginners-editor",
+  "repository": "https://github.com/tikotus/atom-sprite-picker",
   "license": "MIT",
   "engines": {
     "atom": ">=0.174.0 <2.0.0"

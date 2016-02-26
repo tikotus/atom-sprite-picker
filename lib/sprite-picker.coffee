@@ -1,53 +1,59 @@
-BeginnersEditorView = require './beginners-editor-view'
+SpritePickerView = require './sprite-picker-view'
 {CompositeDisposable} = require 'atom'
 {Directory, Point} = require 'atom'
 {$} = require 'atom-space-pen-views'
 fs = require 'fs'
 
-module.exports = BeginnersEditor =
-  beginnersEditorView: null
+module.exports = SpritePicker =
+  spritePickerView: null
   modalPanel: null
   subscriptions: null
 
   activate: (state) ->
-    @beginnersEditorView = new BeginnersEditorView(state.beginnersEditorViewState)
-    @modalPanel = atom.workspace.addRightPanel(item: @beginnersEditorView.getElement(), visible: false)
+    console.log "Activate sprite picker"
+    @spritePickerView = new SpritePickerView(state.spritePickerViewState)
+    @modalPanel = atom.workspace.addRightPanel(item: @spritePickerView.getElement(), visible: true)
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
     # Register command that toggles this view
-    # @subscriptions.add atom.commands.add 'atom-workspace', 'beginners-editor:toggle': => @toggle()
+    # @subscriptions.add atom.commands.add 'atom-workspace', 'sprite-picker:toggle': => @toggle()
     if editor = atom.workspace.getActiveTextEditor()
       @subscriptions.add editor.onDidChangeCursorPosition (event) => @checkSpriteUnderCursor(event)
-    paths = path for path in atom.project.getPaths() when fs.existsSync("#{path}/assets/sprites")
-    console.log "Path: #{paths}"
-    dir = new Directory("#{path}/assets/sprites")
+    paths = [path for path in atom.project.getPaths() when fs.existsSync("#{path}/circler/dev/assets/sprites")]
+    path = paths[0]
+    console.log "Path: #{path}"
+    dir = new Directory("#{path}/circler/dev/assets/sprites")
     sprites = dir.getEntriesSync()
-    @beginnersEditorView.listSprites(sprites)
+    @spritePickerView.listSprites(sprites)
 
     #@subscriptions.add atom.commands.add 'atom-workspace', 'editor:onDidChangeCursorPosition': => @toggle()
   deactivate: ->
     @modalPanel.destroy()
     @subscriptions.dispose()
-    @beginnersEditorView.destroy()
+    @spritePickerView.destroy()
 
   serialize: ->
-    beginnersEditorViewState: @beginnersEditorView.serialize()
+    spritePickerViewState: @spritePickerView.serialize()
 
   selectSprite: (sprite, range) ->
     console.log sprite
     if editor = atom.workspace.getActiveTextEditor()
       editor.setTextInBufferRange(range, sprite)
-      @beginnersEditorView.scrollToSprite(sprite)
+      @spritePickerView.selectSprite(sprite)
 
   checkSpriteUnderCursor: (event) ->
     if editor = atom.workspace.getActiveTextEditor()
       getRange = ->
-        range = event.cursor.getCurrentWordBufferRange(wordRegex: /["']?[a-z0-9_-]*["']?/i)
+        range = event.cursor.getCurrentWordBufferRange(wordRegex: /["'][a-z0-9_-]*["']/i)
         if range.isEmpty()
           return null
-        return range.translate(new Point(0, 1), new Point(0, -1))
+        range = range.translate(new Point(0, 1), new Point(0, -1))
+        if range.start.column >= range.end.column
+          return null
+        console.log range.start.column + " " + range.end.column
+        return range
 
       show = do (@modalPanel) -> ((found) ->
           if found
@@ -56,14 +62,15 @@ module.exports = BeginnersEditor =
             @modalPanel.hide())
 
 
-      select = do (@beginnersEditorView, editor) -> ((sprite) ->
+      select = do (@spritePickerView, editor) -> ((sprite) ->
           range = getRange()
           editor.setTextInBufferRange(range, sprite)
-          @beginnersEditorView.scrollToSprite(sprite, show, select)
+          @spritePickerView.selectSprite(sprite, show, select)
         )
 
-      if range = getRange()
-        @beginnersEditorView.scrollToSprite(editor.getTextInBufferRange(range), show, select)
+      range = getRange()
+      if range and !range.isEmpty()
+          @spritePickerView.selectSprite(editor.getTextInBufferRange(range), show, select)
       else
         @modalPanel.hide()
 
@@ -73,4 +80,4 @@ module.exports = BeginnersEditor =
       #     if fs.existsSync("#{path}/assets/sprites/#{text}.png")
       #       view.setImage("#{path}/assets/sprites/#{text}.png")
       #     else if fs.existsSync("#{path}/assets/texture/#{text}.png")
-      #       view.setImage("#{path}/assets/textures/#{text}.png"))(path, @beginnersEditorView)
+      #       view.setImage("#{path}/assets/textures/#{text}.png"))(path, @spritePickerView)
