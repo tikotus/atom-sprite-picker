@@ -7,5 +7,5 @@
 
 # For more detailed documentation see
 # https://atom.io/docs/latest/behind-atom-keymaps-in-depth
-# 'atom-workspace':
-#   'ctrl-alt-o': 'sprite-picker:toggle'
+'atom-text-editor':
+  'shift-cmd-e': 'beginners-editor:edit'

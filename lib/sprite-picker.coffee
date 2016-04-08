@@ -12,21 +12,18 @@ module.exports = SpritePicker =
   activate: (state) ->
     console.log "Activate sprite picker"
     @spritePickerView = new SpritePickerView(state.spritePickerViewState)
-    @modalPanel = atom.workspace.addRightPanel(item: @spritePickerView.getElement(), visible: true)
+    @modalPanel = atom.workspace.addRightPanel(item: @spritePickerView.getElement(), visible: false)
 
     # Events subscribed to in atom's system can be easily cleaned up with a CompositeDisposable
     @subscriptions = new CompositeDisposable
 
     # Register command that toggles this view
-    # @subscriptions.add atom.commands.add 'atom-workspace', 'sprite-picker:toggle': => @toggle()
-    if editor = atom.workspace.getActiveTextEditor()
-      @subscriptions.add editor.onDidChangeCursorPosition (event) => @checkSpriteUnderCursor(event)
-    paths = [path for path in atom.project.getPaths() when fs.existsSync("#{path}/circler/dev/assets/sprites")]
-    path = paths[0]
-    console.log "Path: #{path}"
-    dir = new Directory("#{path}/circler/dev/assets/sprites")
-    sprites = dir.getEntriesSync()
-    @spritePickerView.listSprites(sprites)
+    @subscriptions.add atom.commands.add 'atom-text-editor', 'beginners-editor:edit': (event) =>
+      if @checkSpriteUnderCursor() == false
+        event.abortKeyBinding();
+
+    #if editor = atom.workspace.getActiveTextEditor()
+    #  @subscriptions.add editor.onDidChangeCursorPosition (event) => @checkSpriteUnderCursor(event)
 
     #@subscriptions.add atom.commands.add 'atom-workspace', 'editor:onDidChangeCursorPosition': => @toggle()
   deactivate: ->
@@ -38,21 +35,27 @@ module.exports = SpritePicker =
     spritePickerViewState: @spritePickerView.serialize()
 
   selectSprite: (sprite, range) ->
-    console.log sprite
     if editor = atom.workspace.getActiveTextEditor()
       editor.setTextInBufferRange(range, sprite)
       @spritePickerView.selectSprite(sprite)
 
-  checkSpriteUnderCursor: (event) ->
+  findFolder: (directory, folderName) ->
+    for dir in directory.getEntriesSync() when dir.isDirectory()
+      if dir.getBaseName() == folderName
+        return dir
+      if foundInChildren = @findFolder(dir, folderName)
+        return foundInChildren
+    return null
+
+  checkSpriteUnderCursor: () ->
     if editor = atom.workspace.getActiveTextEditor()
       getRange = ->
-        range = event.cursor.getCurrentWordBufferRange(wordRegex: /["'][a-z0-9_-]*["']/i)
+        range = editor.getLastCursor().getCurrentWordBufferRange(wordRegex: /["'][a-z0-9_-]*["']/i)
         if range.isEmpty()
           return null
         range = range.translate(new Point(0, 1), new Point(0, -1))
         if range.start.column >= range.end.column
           return null
-        console.log range.start.column + " " + range.end.column
         return range
 
       show = do (@modalPanel) -> ((found) ->
@@ -70,9 +73,20 @@ module.exports = SpritePicker =
 
       range = getRange()
       if range and !range.isEmpty()
-          @spritePickerView.selectSprite(editor.getTextInBufferRange(range), show, select)
+        @spritePickerView.clear()
+        for dir in atom.project.getDirectories()
+          if spritesFolder = @findFolder(dir, "sprites")
+            sprites = spritesFolder.getEntriesSync()
+            @spritePickerView.listSprites(sprites)
+
+        subs = new CompositeDisposable
+        subs.add editor.onDidChangeCursorPosition (event) =>
+          subs.dispose()
+          @modalPanel.hide()
+        @spritePickerView.selectSprite(editor.getTextInBufferRange(range), show, select)
+        return true
       else
-        @modalPanel.hide()
+        return false
 
       # for path in atom.project.getPaths()
       #   ((path, view) ->

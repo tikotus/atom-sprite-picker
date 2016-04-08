@@ -6,7 +6,7 @@
   "keywords": [
   ],
   "activationCommands": {
-    "atom-workspace": "sprite-picker:toggle"
+    "atom-workspace": "beginners-editor:edit"
   },
   "repository": "https://github.com/tikotus/atom-sprite-picker",
   "license": "MIT",

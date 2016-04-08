@@ -6,6 +6,7 @@ class SpritePickerView
     # Create root element
     @element = document.createElement('div')
     @element.classList.add('sprite-picker')
+    @foo = 0
 
   # Returns an object that can be retrieved when package is activated
   serialize: ->
@@ -17,8 +18,10 @@ class SpritePickerView
   getElement: ->
     @element
 
+  clear: ->
+    $(".sprite-picker").empty()
+
   listSprites: (images) ->
-    console.log images + " " + images.length
     for src in images
       sprite = document.createElement('img')
       sprite.classList.add('preview-image')
@@ -28,14 +31,12 @@ class SpritePickerView
 
 
   selectSprite: (img, found, selectSprite) ->
-    console.log "Looking for ##{img}"
     $(".preview-image").unbind('click')
     if ($("##{img}").length)
-      console.log img
       found(true)
       #$("##{img}")[0].scrollIntoView({block: "end", behavior: "smooth"})
       #$(".preview-image").css(opacity:0.4)
-      $("##{img}").css(opacity:1)
+      #$("##{img}").css(opacity:1)
       $(".preview-image").click ->
         $(".preview-image").unbind('click')
         selectSprite($(this).attr('id'))

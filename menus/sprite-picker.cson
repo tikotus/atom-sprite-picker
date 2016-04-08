@@ -3,7 +3,7 @@
   'atom-text-editor': [
     {
       'label': 'Toggle sprite-picker'
-      'command': 'sprite-picker:toggle'
+      'command': 'beginners-editor:edit'
     }
   ]
 'menu': [
@@ -14,7 +14,7 @@
       'submenu': [
         {
           'label': 'Toggle'
-          'command': 'sprite-picker:toggle'
+          'command': 'beginners-editor:edit'
         }
       ]
     ]
